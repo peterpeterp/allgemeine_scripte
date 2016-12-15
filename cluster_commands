@@ -1,0 +1,13 @@
+
+#python
+alias dimpy='/home/perrette/dev/bin/ipython'
+module load anaconda/2.3.0
+
+
+scp allgemeine_scripte/*.py pepflei@cluster.pik-potsdam.de:CA/allgemeine_scripte/
+
+scp risk_profiles/*.r pepflei@cluster.pik-potsdam.de:CA/risk_profiles/
+
+scp single_scripts/*dipesh* pepflei@cluster.pik-potsdam.de:CA/data/year_tas/
+
+scp pepflei@cluster.pik-potsdam.de:CA/data/year_tas/*.csv data/country_year_tas/
