@@ -4,108 +4,99 @@ import glob
 import pandas as pd
 from netCDF4 import Dataset,netcdftime,num2date
 
-def country_average(in_files,var,out_path='',popYear='2015',mask_path='/home/pepflei/CA/masks/',continents=['africa','europe','souAmerica','norAmerica','asia','australia'],mask_style='sov',countries=None,time_units=None,time_calendar=None):
+def country_average(in_file,out_file,var,mask_files,countries=None,time_units=None,time_calendar=None):
 	'''
 	compute weighted country average for each timestep
-	in_files: type list of str: files to be processed
+	in_file: type str: file to be processed
+	out_file: type str: file path where output is written
 	var: type str: variable name in netcdf file
-	out_path: type str: path where output files are written to
-	popYear: type str: specification for the mask to use. population weighted for pop in '1990' or '2015'. 'None' for no pop weighting
-	mask_path: type str: path to where the masks are stored
-	continents: type list of str: continents to be evaluated
-	mask_style: type str: specification of type of mask. sov for sovereign countries, wb for world bank regions etc
+	mask_files: type list of str: masks to be used	
 	countries: type list of str: countries to be evaluated
 	time_units: type str: specification for netcdf time variable unit
 	time_calendar: type str: specification for netcdf time variable calendar
 	'''
+	print 'input:',in_file
 
-	for file in in_files:
-		print 'input:',file
+	nc_data=Dataset(in_file,mode='r')
+	var_in=nc_data.variables[var][:,:,:]
+	print var_in.shape
 
-		nc_data=Dataset(file,mode='r')
-		var_in=nc_data.variables[var][:,:,:]
-		print var_in.shape
+	try:	# handle masked array
+		masked=np.ma.getmask(var_in)
+		var_in=np.ma.getdata(var_in)
+		var_in[masked]=np.nan
+	except: pass
 
-		try:	# handle masked array
-			masked=np.ma.getmask(var_in)
-			var_in=np.ma.getdata(var_in)
-			var_in[masked]=np.nan
-		except: pass
+	# handle time information
+	time=nc_data.variables['time'][:]
+	datevar = []
+	# if specified units and calendar
+	if time_units!=None and time_calendar!=None:
+		datevar.append(num2date(time,units = time_units,calendar= time_calendar))
+	# if no specification
+	if time_units==None and time_calendar==None:
+		time_unit=nc_data.variables['time'].units
+		try:	
+			cal_temps = nc_data.variables['time'].calendar
+			datevar.append(num2date(time,units = time_unit,calendar = cal_temps))
+		except:
+			datevar.append(num2date(time,units = time_unit))
+	# create index variable
+	years=np.array([int(str(date).split("-")[0])\
+		for date in datevar[0][:]])
+	months=np.array([int(str(date).split("-")[1])\
+		for date in datevar[0][:]])
+	time_index=np.array([int(str(date).split("-")[0])*100+int(str(date).split("-")[1])\
+		for date in datevar[0][:]])
 
-		# handle time information
-		time=nc_data.variables['time'][:]
-		datevar = []
-		# if specified units and calendar
-		if time_units!=None and time_calendar!=None:
-			datevar.append(num2date(time,units = time_units,calendar= time_calendar))
-		# if no specification
-		if time_units==None and time_calendar==None:
-			time_unit=nc_data.variables['time'].units
-			try:	
-				cal_temps = nc_data.variables['time'].calendar
-				datevar.append(num2date(time,units = time_unit,calendar = cal_temps))
-			except:
-				datevar.append(num2date(time,units = time_unit))
-		# create index variable
-		years=np.array([int(str(date).split("-")[0])\
-			for date in datevar[0][:]])
-		months=np.array([int(str(date).split("-")[1])\
-			for date in datevar[0][:]])
-		time_index=np.array([int(str(date).split("-")[0])*100+int(str(date).split("-")[1])\
-			for date in datevar[0][:]])
-
-		# identify the grid and open mask file
-		grid=str(str(len(nc_data.dimensions['lon']))+'x'+str(len(nc_data.dimensions['lat'])))
-		print grid
-
-		# make a list of all countries
-		if countries==None:
-			countries=[]
-			for continent in continents:
-				print str(mask_path+grid+'/'+mask_style+'_'+popYear+'_'+continent+'.nc')
-				nc_mask=Dataset(str(mask_path+grid+'/'+mask_style+'_'+popYear+'_'+continent+'.nc'),mode='r')
-				for country in nc_mask.variables:
-					if (country!='lon') and (country!='lat'):
-						countries.append(country)
-
-		# create output frame
-		country_mean = pd.DataFrame(index=time_index,columns=countries)
-
-		for continent in continents:
-			nc_mask=Dataset(str(mask_path+grid+'/'+mask_style+'_'+popYear+'_'+continent+'.nc'),mode='r')
-
-			if nc_mask.variables['lon'][0]!=nc_data.variables['lon'][0]:
-				var_in=var_in[:,:,::-1]
-				if nc_mask.variables['lon'][0]!=nc_data.variables['lon'][-1]:
-					print 'problem here'
-					adasd
-
-			if nc_mask.variables['lat'][0]!=nc_data.variables['lat'][0]:
-				var_in=var_in[:,::-1,:]
-				if nc_mask.variables['lat'][0]!=nc_data.variables['lat'][-1]:
-					print 'problem here'
-					adasd
-
+	# make a list of all countries
+	if countries==None:
+		countries=[]
+		for mask_file in mask_files:
+			print mask_file
+			nc_mask=Dataset(mask_file,mode='r')
 			for country in nc_mask.variables:
-				if country in countries:
-					mask=nc_mask.variables[country][:,:]
-					country_area=np.where(mask>0)				
-					for t in range(len(time_index)):
-						var_of_area=var_in[t,:,:][country_area]
-						# NA handling: sum(mask*var)/sum(mask) for the area where var is not NA
-						not_missing_in_var=np.where(np.isnan(var_of_area)==False)[0]	# np.where()[0] because of array([],)
-						if sum(mask[country_area][not_missing_in_var])>0:
-							country_mean.loc[time_index[t]][country]=sum(mask[country_area][not_missing_in_var]*var_of_area[not_missing_in_var])/sum(mask[country_area][not_missing_in_var])
+				if (country!='lon') and (country!='lat'):
+					countries.append(country)
 
-		# add time information
-		country_mean['month']=months
-		country_mean['year']=years
+	# create output frame
+	country_mean = pd.DataFrame(index=time_index,columns=countries)
 
-		country_mean.to_csv(out_path+file.split('/')[-1].replace('.nc4','').replace('.nc','')+'_'+mask_style+'.csv',float_format='{:f}'.format,index_label='time')
-		print 'output:',out_path+file.split('/')[-1].replace('.nc4','').replace('.nc','')+'_'+mask_style+'.csv'
+	for mask_file in mask_files:
+		nc_mask=Dataset(mask_file,mode='r')
 
-		del var_in,country_mean
-		gc.collect()
+		if nc_mask.variables['lon'][0]!=nc_data.variables['lon'][0]:
+			var_in=var_in[:,:,::-1]
+			if nc_mask.variables['lon'][0]!=nc_data.variables['lon'][-1]:
+				print 'problem here'
+				adasd
+
+		if nc_mask.variables['lat'][0]!=nc_data.variables['lat'][0]:
+			var_in=var_in[:,::-1,:]
+			if nc_mask.variables['lat'][0]!=nc_data.variables['lat'][-1]:
+				print 'problem here'
+				adasd
+
+		for country in nc_mask.variables:
+			if country in countries:
+				mask=nc_mask.variables[country][:,:]
+				country_area=np.where(mask>0)				
+				for t in range(len(time_index)):
+					var_of_area=var_in[t,:,:][country_area]
+					# NA handling: sum(mask*var)/sum(mask) for the area where var is not NA
+					not_missing_in_var=np.where(np.isnan(var_of_area)==False)[0]	# np.where()[0] because of array([],)
+					if sum(mask[country_area][not_missing_in_var])>0:
+						country_mean.loc[time_index[t]][country]=sum(mask[country_area][not_missing_in_var]*var_of_area[not_missing_in_var])/sum(mask[country_area][not_missing_in_var])
+
+	# add time information
+	country_mean['month']=months
+	country_mean['year']=years
+
+	country_mean.to_csv(out_file,float_format='{:f}'.format,index_label='time')
+	print 'output:',out_file
+
+	del var_in,country_mean
+	gc.collect()
 
 
 def country_average_of_zoom(inFile,var,maskFile,country='UGA',period=None):

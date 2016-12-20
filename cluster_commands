@@ -11,3 +11,6 @@ scp risk_profiles/*.r pepflei@cluster.pik-potsdam.de:CA/risk_profiles/
 scp single_scripts/*dipesh* pepflei@cluster.pik-potsdam.de:CA/data/year_tas/
 
 scp pepflei@cluster.pik-potsdam.de:CA/data/year_tas/*.csv data/country_year_tas/
+
+
+scp pepflei@cluster.pik-potsdam.de:CA/data/country_data/GHA/raw/CMIP5/RCP8.5/mon_rx5* Projects/WB_DRM/country_data/climate_input/GHA/raw/CMIP5/RCP8.5/
