@@ -4,7 +4,8 @@ alias dimpy='/home/perrette/dev/bin/ipython'
 module load anaconda/2.3.0
 
 
-scp allgemeine_scripte/*.py pepflei@cluster.pik-potsdam.de:CA/allgemeine_scripte/
+scp Scripts/allgemeine_scripte/*.py pepflei@cluster.pik-potsdam.de:CA/Scripts/allgemeine_scripte/
+scp Scripts/index_computation/RX5_computation/*.py pepflei@cluster.pik-potsdam.de:CA/Scripts/index_computation/RX5_computation/
 
 scp risk_profiles/*.r pepflei@cluster.pik-potsdam.de:CA/risk_profiles/
 
@@ -13,4 +14,5 @@ scp single_scripts/*dipesh* pepflei@cluster.pik-potsdam.de:CA/data/year_tas/
 scp pepflei@cluster.pik-potsdam.de:CA/data/year_tas/*.csv data/country_year_tas/
 
 
+scp pepflei@cluster.pik-potsdam.de:CA/data/country_data/GHA/raw/CMIP5/RCP2.6/mon_rx5* Projects/WB_DRM/country_data/climate_input/GHA/raw/CMIP5/RCP2.6/
 scp pepflei@cluster.pik-potsdam.de:CA/data/country_data/GHA/raw/CMIP5/RCP8.5/mon_rx5* Projects/WB_DRM/country_data/climate_input/GHA/raw/CMIP5/RCP8.5/

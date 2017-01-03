@@ -26,19 +26,16 @@ def make_colormap(seq):
 # converter
 col_conv = mcolors.ColorConverter().to_rgb
 
-# start plotting
-def plot_map(ax,lon,lat,Z,color_type=plt.cm.bwr,color_range=[0,100],color_label='bla',subtitle='',grey_area=None,limits=None):
-	if limits==None:
-		limits=[np.min(lon,axis=1)[0]-1,np.max(lon,axis=1)[0]+1,np.min(lat,axis=0)[0]-1,np.max(lat,axis=0)[0]+1]
-		print limits
-		
-	m = Basemap(ax=ax,llcrnrlon=limits[0],urcrnrlon=limits[1],llcrnrlat=limits[2],urcrnrlat=limits[3],resolution="l",projection='cyl')
+# simpler method
+def plot_map(ax,lon,lat,Z,color_type=plt.cm.bwr,color_range=[0,100],color_label='bla',subtitle='',grey_area=None):
+	m = Basemap(ax=ax,llcrnrlon=np.min(lon),urcrnrlon=np.max(lon),llcrnrlat=np.min(lat),urcrnrlat=np.max(lat),resolution="l",projection='cyl')
 	m.drawmapboundary(fill_color='1.')
 
-	Z=Z.reshape([lon.shape[0]-1,lon.shape[1]-1])
-	Zm=np.ma.masked_invalid(Z)
+	Z=np.ma.masked_invalid(Z)
+	if lat[0]>lat[1]:Z=Z[::-1,:]
+	if lon[0]>lon[1]:Z=Z[:,::-1]
 
-	im1 = m.pcolormesh(lon,lat,Zm,cmap=color_type,vmin=color_range[0],vmax=color_range[1])
+	im1 = m.imshow(Z,cmap=color_type,vmin=color_range[0],vmax=color_range[1],interpolation='none')
 	if grey_area!=None:
 		grey_area=grey_area.reshape([lon.shape[0]-1,lon.shape[1]-1])
 		grey_area=np.ma.masked_invalid(grey_area)
@@ -62,7 +59,41 @@ def plot_map(ax,lon,lat,Z,color_type=plt.cm.bwr,color_range=[0,100],color_label=
 
 	return(ax,im1)
 
+# # could be better for specific grid comparisons
+# def plot_map(ax,lon,lat,Z,color_type=plt.cm.bwr,color_range=[0,100],color_label='bla',subtitle='',grey_area=None,limits=None):
+# 	if limits==None:
+# 		limits=[np.min(lon,axis=1)[0]-1,np.max(lon,axis=1)[0]+1,np.min(lat,axis=0)[0]-1,np.max(lat,axis=0)[0]+1]
+# 		print limits
+		
+# 	m = Basemap(ax=ax,llcrnrlon=limits[0],urcrnrlon=limits[1],llcrnrlat=limits[2],urcrnrlat=limits[3],resolution="l",projection='cyl')
+# 	m.drawmapboundary(fill_color='1.')
 
+# 	#Z=Z.reshape([lon.shape[0]-1,lon.shape[1]-1])
+# 	Zm=np.ma.masked_invalid(Z)
+
+# 	im1 = m.pcolormesh(lon,lat,Zm,cmap=color_type,vmin=color_range[0],vmax=color_range[1])
+# 	if grey_area!=None:
+# 		grey_area=grey_area.reshape([lon.shape[0]-1,lon.shape[1]-1])
+# 		grey_area=np.ma.masked_invalid(grey_area)
+# 		im2 = m.pcolormesh(lon,lat,grey_area,cmap=plt.cm.Greys,vmin=0,vmax=1)
+
+# 	m.drawcoastlines()
+# 	m.drawstates()
+# 	m.drawcountries()
+
+	
+# 	if color_label!=None:
+# 		# add colorbar
+# 		cb = m.colorbar(im1,'right', size="5%", pad="2%")
+
+# 		tick_locator = ticker.MaxNLocator(nbins=5)
+# 		cb.locator = tick_locator
+# 		cb.update_ticks()
+# 		cb.set_label(color_label, rotation=90)
+
+# 	if subtitle!='':ax.set_title(subtitle)
+
+# 	return(ax,im1)
 
 # # start plotting
 # def plot_map_old(fig,lon,lat,Z,pos,color_type=plt.cm.bwr,color_range=[0,100],color_label='bla',subtitle='',grey_area=None):
