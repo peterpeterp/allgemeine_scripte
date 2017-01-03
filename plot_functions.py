@@ -37,9 +37,10 @@ def plot_map(ax,lon,lat,Z,color_type=plt.cm.bwr,color_range=[0,100],color_label=
 
 	im1 = m.imshow(Z,cmap=color_type,vmin=color_range[0],vmax=color_range[1],interpolation='none')
 	if grey_area!=None:
-		grey_area=grey_area.reshape([lon.shape[0]-1,lon.shape[1]-1])
-		grey_area=np.ma.masked_invalid(grey_area)
-		im2 = m.pcolormesh(lon,lat,grey_area,cmap=plt.cm.Greys,vmin=0,vmax=1)
+		Z=np.ma.masked_invalid(grey_area.copy())
+		if lat[0]>lat[1]:Z=Z[::-1,:]
+		if lon[0]>lon[1]:Z=Z[:,::-1]
+		im2 = m.imshow(Z,cmap=plt.cm.Greys,vmin=0,vmax=1,interpolation='none')
 
 	m.drawcoastlines()
 	m.drawstates()
