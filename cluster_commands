@@ -16,3 +16,8 @@ scp pepflei@cluster.pik-potsdam.de:CA/data/year_tas/*.csv data/country_year_tas/
 
 scp pepflei@cluster.pik-potsdam.de:CA/data/country_data/GHA/raw/CMIP5/RCP2.6/mon_rx5* Projects/WB_DRM/country_data/climate_input/GHA/raw/CMIP5/RCP2.6/
 scp pepflei@cluster.pik-potsdam.de:CA/data/country_data/GHA/raw/CMIP5/RCP8.5/mon_rx5* Projects/WB_DRM/country_data/climate_input/GHA/raw/CMIP5/RCP8.5/
+
+
+scp Projects/country_analysis/country_analysis_scripts/*.py pepflei@cluster.pik-potsdam.de:/p/projects/tumble/carls/shared_folder/country_anaylsis/country_analysis_scripts/
+
+scp pepflei@cluster.pik-potsdam.de:/p/projects/tumble/carls/shared_folder/country_anaylsis/GHA/GHA* Projects/country_analysis/GHA
