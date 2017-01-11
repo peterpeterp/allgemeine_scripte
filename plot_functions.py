@@ -27,7 +27,7 @@ def make_colormap(seq):
 col_conv = mcolors.ColorConverter().to_rgb
 
 # simpler method
-def plot_map(ax,lon,lat,Z,color_type=plt.cm.bwr,color_range=[0,100],color_label='',subtitle='',grey_area=None):
+def plot_map(ax,lon,lat,Z,color_type=plt.cm.bwr,color_range=[0,100],color_label='',subtitle='',grey_area=None,limits=None):
 
 	# handle 0 to 360 lon
 	if max(lon)>180:
@@ -38,20 +38,21 @@ def plot_map(ax,lon,lat,Z,color_type=plt.cm.bwr,color_range=[0,100],color_label=
 		lon[lon>180]-=360
 
 	# get limits
-	print np.min(lon),np.max(lon),np.min(lat),np.max(lat)
-	m = Basemap(ax=ax,llcrnrlon=np.min(lon),urcrnrlon=np.max(lon),llcrnrlat=np.min(lat),urcrnrlat=np.max(lat),resolution="l",projection='cyl')
+	if limits==None:
+		limits=[np.min(lon),np.max(lon),np.min(lat),np.max(lat)]
+	m = Basemap(ax=ax,llcrnrlon=limits[0],urcrnrlon=limits[1],llcrnrlat=limits[2],urcrnrlat=limits[3],resolution="l",projection='cyl')
 	m.drawmapboundary(fill_color='1.')
 
 	Z=np.ma.masked_invalid(Z)
 	if lat[0]>lat[1]:Z=Z[::-1,:]
 	if lon[0]>lon[1]:Z=Z[:,::-1]
 
-	im1 = m.imshow(Z,cmap=color_type,vmin=color_range[0],vmax=color_range[1],interpolation='none')
+	im1 = m.imshow(Z,cmap=color_type,vmin=color_range[0],vmax=color_range[1],interpolation='none',extent=[np.min(lon),np.max(lon),np.min(lat),np.max(lat)])
 	if grey_area!=None:
 		Z=np.ma.masked_invalid(grey_area.copy())
 		if lat[0]>lat[1]:Z=Z[::-1,:]
 		if lon[0]>lon[1]:Z=Z[:,::-1]
-		im2 = m.imshow(Z,cmap=plt.cm.Greys,vmin=0,vmax=1,interpolation='none')
+		im2 = m.imshow(Z,cmap=plt.cm.Greys,vmin=0,vmax=1,interpolation='none',extent=[np.min(lon),np.max(lon),np.min(lat),np.max(lat)])
 
 	m.drawcoastlines()
 	m.drawstates()
