@@ -21,3 +21,6 @@ scp pepflei@cluster.pik-potsdam.de:CA/data/country_data/GHA/raw/CMIP5/RCP8.5/mon
 scp Projects/country_analysis/country_analysis_scripts/*.py pepflei@cluster.pik-potsdam.de:/p/projects/tumble/carls/shared_folder/country_anaylsis/country_analysis_scripts/
 
 scp pepflei@cluster.pik-potsdam.de:/p/projects/tumble/carls/shared_folder/country_anaylsis/GHA/GHA* Projects/country_analysis/GHA
+
+
+scp pepflei@cluster.pik-potsdam.de:/p/projects/tumble/carls/shared_folder/country_anaylsis/GHA/raw/*ncep* Projects/country_analysis/GHA/

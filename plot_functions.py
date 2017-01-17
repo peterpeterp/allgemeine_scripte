@@ -37,9 +37,13 @@ def plot_map(ax,lon,lat,Z,color_type=plt.cm.bwr,color_range=[0,100],color_label=
 		lon=lon[new_order]
 		lon[lon>180]-=360
 
-	# get limits
+	# handle limits
+	half_lon_step=abs(np.diff(lon,1)[0]/2)
+	half_lat_step=abs(np.diff(lat,1)[0]/2)
 	if limits==None:
-		limits=[np.min(lon),np.max(lon),np.min(lat),np.max(lat)]
+		limits=[np.min(lon)-half_lon_step,np.max(lon)+half_lon_step,np.min(lat)-half_lat_step,np.max(lat)+half_lat_step]
+	extent=[np.min(lon)-half_lon_step,np.max(lon)+half_lon_step,np.min(lat)-half_lat_step,np.max(lat)+half_lat_step]
+
 	m = Basemap(ax=ax,llcrnrlon=limits[0],urcrnrlon=limits[1],llcrnrlat=limits[2],urcrnrlat=limits[3],resolution="l",projection='cyl')
 	m.drawmapboundary(fill_color='1.')
 
