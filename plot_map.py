@@ -27,9 +27,9 @@ def make_colormap(seq):
 col_conv = mcolors.ColorConverter().to_rgb
 
 # simpler method
-def plot_map(to_plot,lat,lon,color_bar=True,color_label='',color_palette=plt.cm.plasma,color_range=None,grey_area=None,limits=[-180,180,-90,90],ax=None,out_file=None,title='',show=True,figsize=(8,4),coastline_width=0.3,shift_half_a_grid_cell=False,significance=None,marker_size=1,contour=False,levels=None,colors=None):
+def plot_map(to_plot,lat,lon,color_bar=True,color_label='',color_palette=plt.cm.jet,color_range=None,grey_area=None,limits=None,ax=None,out_file=None,title='',show=True,figsize=(8,4),coastline_width=0.3,shift_half_a_grid_cell=False,significance=None,marker_size=0.1,contour=False,levels=None,colors=None):
     if ax==None:
-        fig, ax = plt.subplots(nrows=1, ncols=1,figsize=figsize)      
+        fig, ax = plt.subplots(nrows=1, ncols=1,figsize=figsize)
 
     # handle limits
     if limits is None:
@@ -60,7 +60,7 @@ def plot_map(to_plot,lat,lon,color_bar=True,color_label='',color_palette=plt.cm.
 
     # show coastlines and borders
     m.drawcoastlines(linewidth=coastline_width)
-    m.drawparallels(np.arange(-60,100,30),labels=[0,0,0,0],color='grey',linewidth=0.5) 
+    m.drawparallels(np.arange(-60,100,30),labels=[0,0,0,0],color='grey',linewidth=0.5)
     m.drawmeridians([-120,0,120],labels=[0,0,0,0],color='grey',linewidth=0.5)
 
     # get color_range
@@ -93,10 +93,9 @@ def plot_map(to_plot,lat,lon,color_bar=True,color_label='',color_palette=plt.cm.
 
     # significance
     if significance!=None:
-        print 'hey'
         xy=np.where(significance!=0)
-        print lon[xy[1]],lat[xy[0]]
-        ax.scatter(lon[xy[1]],lat[xy[0]],marker='+',color='black',s=marker_size)
+        print np.diff(x,1)[0]/360.
+        ax.scatter(lon[xy[1]],lat[xy[0]],marker='+',color='black',s=marker_size*(np.diff(x,1)[0]/360.)/0.00390625)
 
 
     # add colorbar
@@ -106,11 +105,7 @@ def plot_map(to_plot,lat,lon,color_bar=True,color_label='',color_palette=plt.cm.
 
     ax.set_title(title)
     ax.legend(loc='best')
-    
+
     if out_file==None and show==True:plt.show()
     if out_file!=None:plt.tight_layout() ; plt.savefig(out_file) ; plt.clf()
     return(im)
-
-
-
-

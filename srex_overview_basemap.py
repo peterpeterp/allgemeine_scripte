@@ -1,87 +1,15 @@
 import matplotlib.pylab as plt
 from matplotlib.path import Path
+from mpl_toolkits.basemap import Basemap, cm
+import mpl_toolkits.basemap
+import numpy as np
+
+
 import matplotlib
 from matplotlib.collections import PatchCollection
 
-import numpy as np
-
-import cartopy.crs as ccrs
-import cartopy
-
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
-
-def srex_overview(small_plot_function,axis_settings,polygons,reg_info,x_ext=[-180,180],y_ext=[-64,-2],small_plot_size=0.05,output_name=None,legend_plot=None,legend_pos=None,arg1=None,arg2=None,arg3=None,fontsize=8):
-
-	asp=float(x_ext[-1]-x_ext[0])/float(y_ext[-1]-y_ext[0])
-
-	# settings for big plot image
-	ratio=0.0
-	plt.close('all')
-	plate_carree = ccrs.PlateCarree()
-	fig=plt.figure(figsize=(10,10/asp))
-	ax_map=fig.add_axes([0,0,1,1],projection=plate_carree)
-	ax_map.set_global()
-	ax_map.coastlines()
-	ax_map.set_xlim(x_ext)
-	ax_map.set_ylim(y_ext)
-	ax_map.axis('off')
-	ax_map.outline_patch.set_edgecolor('white')
-	ratio=0.0
-
-	patches,colors=[],[]
-	for region in reg_info.keys():
-		# fill the outer subplot with whatever is defined in small_plot_function
-		if 'pos' in reg_info[region].keys():
-			x,y=reg_info[region]['pos']
-		else:
-			x,y=Polygon(polygons[region]['points']).centroid.xy
-			x,y=x[0],y[0]
-			if 'pos_off' in reg_info[region].keys():
-				x+=reg_info[region]['pos_off'][0]
-				y+=reg_info[region]['pos_off'][1]
-
-		x=abs(x-x_ext[0])/float(abs(x_ext[1]-x_ext[0]))
-		y=abs(y-y_ext[0])/float(abs(y_ext[1]-y_ext[0]))
-
-		if 'scaling_factor' in reg_info[region].keys():
-			zz=reg_info[region]['scaling_factor']
-			ax = fig.add_axes([x-small_plot_size*zz/2.,y-(small_plot_size*zz*0.75*asp*0.5),small_plot_size*zz,small_plot_size*zz*0.75*asp])#,axisbg='w')
-		else:
-			ax = fig.add_axes([x-small_plot_size/2.,y-(small_plot_size*0.75*asp*0.5),small_plot_size,small_plot_size*0.75*asp])#,axisbg='w')
-
-
-		small_plot_function(subax=ax,region=region,arg1=arg1,arg2=arg2,arg3=arg3)
-		if 'ylabel' in reg_info[region].keys():
-			ax=axis_settings(ax,label='on')
-			ax.set_ylabel(reg_info[region]['ylabel'],fontsize=fontsize)
-			ax.set_xlabel(reg_info[region]['xlabel'],fontsize=fontsize)
-			ax.set_title(reg_info[region]['title'],fontsize=fontsize)
-		else:
-			ax=axis_settings(ax,label='off')
-
-		# add polygon
-		if region in polygons.keys():
-			patches.append(matplotlib.patches.Polygon(polygons[region]['points']))
-			colors.append(reg_info[region]['color'])
-
-	if legend_pos is not None and legend_plot is not None:
-		x,y=legend_pos
-		x=abs(x-x_ext[0])/float(abs(x_ext[1]-x_ext[0]))
-		y=abs(y-y_ext[0])/float(abs(y_ext[1]-y_ext[0]))
-		ax = fig.add_axes([x-small_plot_size/2.,y-(small_plot_size*0.75*asp*0.5),small_plot_size,small_plot_size*0.75*asp])
-		legend_plot(subax=ax)
-	# plot colored polygons
-	p = PatchCollection(patches, cmap=matplotlib.cm.jet, alpha=0.2)
-	#colors = 100*np.random.rand(len(patches))
-	p.set_array(np.array(colors))
-	ax_map.add_collection(p)
-
-	if output_name!=None: plt.savefig(output_name,dpi=600)
-	if output_name==None: return(fig,ax_map)
-
-
-
 
 def srex_overview_NH(small_plot_function,srex_polygons,output_name,example_plot=None,legend_plot=None,annotate_plot=None,arg1=None,arg2=None,arg3=None):
 
@@ -118,25 +46,15 @@ def srex_overview_NH(small_plot_function,srex_polygons,output_name,example_plot=
 
 	# settings for big plot image
 	ratio=0.0
-	plt.close('all')
-	plate_carree = ccrs.PlateCarree()
-	fig=plt.figure(figsize=(10,2.5))
-	ax_map=fig.add_axes([0,0,1,1],projection=plate_carree)
-	ax_map.set_global()
-	ax_map.coastlines()
-	ax_map.set_xlim(-180,180)
-	ax_map.set_ylim(0,90)
+	fig = plt.figure(figsize=(10,2.5))
+
+	# map in the center of the big plot window (transparant background)
+	#ax_map=fig.add_axes([ratio,ratio,1-2*ratio,1-2*ratio])
+	ax_map=fig.add_axes([0,0,1,1])
+	ax_map.patch.set_facecolor('None')
 	ax_map.axis('off')
-	ax_map.outline_patch.set_edgecolor('white')
-
-
-	# # map in the center of the big plot window (transparant background)
-	# #ax_map=fig.add_axes([ratio,ratio,1-2*ratio,1-2*ratio])
-	# ax_map=fig.add_axes([0,0,1,1])
-	# ax_map.patch.set_facecolor('None')
-	# ax_map.axis('off')
-	# m=Basemap(ax=ax_map,llcrnrlon=-180,urcrnrlon=180,llcrnrlat=10,urcrnrlat=80)
-	# m.drawcoastlines()
+	m=Basemap(ax=ax_map,llcrnrlon=-180,urcrnrlon=180,llcrnrlat=10,urcrnrlat=80)
+	m.drawcoastlines()
 
 	factor_NH=(60.)/(80.+65.)
 
@@ -177,10 +95,9 @@ def srex_overview_NH(small_plot_function,srex_polygons,output_name,example_plot=
 	if output_name==None: plt.show()
 
 
+def srex_overview(small_plot_function,srex_polygons,output_name,example_plot=None,legend_plot=None,arg1=None,arg2=None,arg3=None):
 
-
-def srex_overview_global(small_plot_function,srex_polygons,output_name=None,example_plot=None,legend_plot=None,annotate_plot=None,arg1=None,arg2=None,arg3=None):
-
+	plt.clf()
 	# subplot positions
 	reg_info={}
 	poly={}
@@ -225,28 +142,45 @@ def srex_overview_global(small_plot_function,srex_polygons,output_name=None,exam
 
 	# settings for big plot image
 	ratio=0.0
-	plt.close('all')
-	plate_carree = ccrs.PlateCarree()
-	fig=plt.figure(figsize=(12,6))
-	ax_map=fig.add_axes([0,0,1,1],projection=plate_carree)
-	ax_map.set_global()
-	ax_map.coastlines()
-	ax_map.set_xlim(-180,180)
-	ax_map.set_ylim(-65,80)
+	fig = plt.figure(figsize=(12,6))
+
+	# big plot window
+	ax_big=fig.add_axes([0,0,1,1])
+	ax_big.axis('off')
+
+	# map in the center of the big plot window (transparant background)
+	ax_map=fig.add_axes([ratio,ratio,1-2*ratio,1-2*ratio])
+	ax_map.patch.set_facecolor('None')
 	ax_map.axis('off')
-	ax_map.outline_patch.set_edgecolor('white')
-	ratio=0.0
+	m=Basemap(ax=ax_map,llcrnrlon=-180,urcrnrlon=180,llcrnrlat=-65,urcrnrlat=80)
+	m.drawcoastlines()
+
 
 	patches,colors=[],[]
 	for region in srex_polygons.keys():
 		if region != 'global':
 			# fill the outer subplot with whatever is defined in small_plot_function
-			ax = fig.add_axes([reg_info[region]['pos'][0],reg_info[region]['pos'][1],0.075,0.1])#,axisbg='w')
+			ax = fig.add_axes([reg_info[region]['pos'][0],reg_info[region]['pos'][1],0.075,0.1],axisbg='w')
 			small_plot_function(subax=ax,region=region,arg1=arg1,arg2=arg2,arg3=arg3)
 
 			# add polygon
 			patches.append(matplotlib.patches.Polygon(srex_polygons[region]['points']))
 			colors.append(reg_info[region]['color'])
+
+	# annotate
+	if annotate_plot is not None:
+		ax = fig.add_axes([0.0, 0.0, 0.1, 0.1333333333],axisbg='w')
+		annotate_plot(subax=ax,arg1=arg1,arg2=arg2,arg3=arg3)
+
+	# explanatory plot
+	if example_plot is not None:
+		ax = fig.add_axes([0.09, 0.2, 0.1, 0.1333333333],axisbg='w')
+		example_plot(subax=ax)
+
+	# legend plot
+	if legend_plot is not None:
+		ax = fig.add_axes([0.08, 0.4, 0.1, 0.1333333333],axisbg='w')
+		legend_plot(subax=ax)
 
 	# plot colored polygons
 	p = PatchCollection(patches, cmap=matplotlib.cm.jet, alpha=0.4)
@@ -255,8 +189,7 @@ def srex_overview_global(small_plot_function,srex_polygons,output_name=None,exam
 	ax_map.add_collection(p)
 
 	if output_name!=None: plt.savefig(output_name,dpi=600)
-	if output_name==None: return(fig)
-
+	if output_name==None: plt.show()
 
 
 # example plot functions
